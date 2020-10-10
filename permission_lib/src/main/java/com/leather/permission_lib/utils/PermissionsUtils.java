@@ -47,8 +47,7 @@ public class PermissionsUtils {
         mPermissionsResult = permissionsResult;
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {//6.0才用动态权限
-            permissionsResult.permissionGranted();
-            context.finish();
+            grantedFinish(context, permissionsResult);
             return;
         }
 
@@ -66,8 +65,7 @@ public class PermissionsUtils {
             ActivityCompat.requestPermissions(context, permissions, mRequestCode);
         } else {
             //说明权限都已经通过
-            permissionsResult.permissionGranted();
-            context.finish();
+            grantedFinish(context, permissionsResult);
         }
     }
 
@@ -91,16 +89,24 @@ public class PermissionsUtils {
                 if (showSystemSetting) {
                     showSystemPermissionsSettingDialog(context, permissions);//跳转到系统设置权限页面，或者直接关闭页面，不让他继续访问
                 } else {
-                    mPermissionsResult.permissionDenied(requestCode, permissions);
-                    context.finish();
+                    deniedFinish(context, requestCode, permissions);
                 }
             } else {
                 //全部权限通过，可以进行下一步操作。。。
-                mPermissionsResult.permissionGranted();
-                context.finish();
+                grantedFinish(context, mPermissionsResult);
             }
         }
 
+    }
+
+    private void deniedFinish(Activity context, int requestCode, @NonNull String[] permissions) {
+        mPermissionsResult.permissionDenied(requestCode, permissions);
+        context.finish();
+    }
+
+    private void grantedFinish(Activity context, IPermission mPermissionsResult) {
+        mPermissionsResult.permissionGranted();
+        context.finish();
     }
 
 
@@ -125,9 +131,7 @@ public class PermissionsUtils {
                         public void onClick(DialogInterface dialog, int which) {
                             //关闭页面或者做其他操作
                             cancelPermissionDialog();
-                            //mContext.finish();
-                            mPermissionsResult.permissionDenied(mRequestCode, permissions);
-                            context.finish();
+                            deniedFinish(context, mRequestCode, permissions);
                         }
                     })
                     .create();
